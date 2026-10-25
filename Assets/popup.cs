@@ -10,6 +10,11 @@ public class PopupController : MonoBehaviour
     public void OpenPopup(GameObject popup)
     {
         currentpopup=popup;
+        PopupView view = popup.GetComponent<PopupView>();
+        if (view != null)
+        {
+            view.ApplyData();
+        }
         background.SetActive(true);
         closeButton.SetActive(true);
         currentpopup.SetActive(true);
