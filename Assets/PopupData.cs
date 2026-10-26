@@ -16,10 +16,16 @@ public class TextItem
     public string text;
 
     public int fontSize = 18;
+
+    public Vector2 position = Vector2.zero;
+    public Vector2 size = new Vector2(300, 100);
 }
 
 [Serializable]
 public class ImageItem
 {
     public Sprite image;
+
+    public Vector2 position = Vector2.zero;
+    public Vector2 size = new Vector2(200, 200);
 }

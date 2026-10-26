@@ -1,33 +1,42 @@
-
 using UnityEngine;
 
 public class PopupController : MonoBehaviour
 {
     public GameObject background;
     public GameObject closeButton;
-    private GameObject currentpopup;
+    public GameObject popupPanel;
 
-    public void OpenPopup(GameObject popup)
+    private PopupData currentData;
+
+    public void OpenPopup(PopupData data)
     {
-        currentpopup=popup;
-        PopupView view = popup.GetComponent<PopupView>();
+        if (data == null)
+        {
+            Debug.LogError("PopupDataが設定されていません。");
+            return;
+        }
+
+        currentData = data;
+
+        PopupView view = popupPanel.GetComponent<PopupView>();
+
         if (view != null)
         {
+            view.data = currentData;
             view.ApplyData();
         }
+
         background.SetActive(true);
         closeButton.SetActive(true);
-        currentpopup.SetActive(true);
+        popupPanel.SetActive(true);
     }
 
     public void ClosePopup()
     {
-        if (currentpopup != null)
-        {
-            currentpopup.SetActive(false);
-            currentpopup = null;
-        }
+        popupPanel.SetActive(false);
         background.SetActive(false);
         closeButton.SetActive(false);
+
+        currentData = null;
     }
 }

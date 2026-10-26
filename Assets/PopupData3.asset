@@ -15,5 +15,9 @@ MonoBehaviour:
   texts:
   - text: "\u60C5\u58313"
     fontSize: 72
+    position: {x: 0, y: 0}
+    size: {x: 300, y: 100}
   images:
   - image: {fileID: -725859618706464303, guid: 928b74073edd8ae4989f6ec03c472f9f, type: 3}
+    position: {x: 0, y: -200}
+    size: {x: 300, y: 300}
