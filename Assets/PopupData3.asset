@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a367a05f38d358a4d9917f9851f955fb, type: 3}
   m_Name: PopupData3
   m_EditorClassIdentifier: Assembly-CSharp::PopupData
+  id: 3
+  title: "\u30DC\u30BF\u30F33"
   texts:
   - text: "\u60C5\u58313"
     fontSize: 72

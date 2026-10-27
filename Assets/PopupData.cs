@@ -5,6 +5,11 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewPopupData", menuName = "Popup/Popup Data")]
 public class PopupData : ScriptableObject
 {
+    [Header("ボタン")]
+    public int id;
+    public string title;
+
+    [Header("ポップアップの中身")]
     public List<TextItem> texts = new List<TextItem>();
     public List<ImageItem> images = new List<ImageItem>();
 }
