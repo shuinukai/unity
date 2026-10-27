@@ -12,6 +12,9 @@ public class PopupController : MonoBehaviour
     [Header("プレハブ")]
     public PopupUIRoot uiRootPrefab;
     public PopupButton buttonPrefab;
+    [Tooltip("未設定ならフォームとキーボードは生成しない")]
+    public TMP_InputField inputFormPrefab;
+    public KeyboardController keyboardPrefab;
 
     [Header("データ（id順に並べ替えて表示）")]
     public List<PopupData> popupDataList = new List<PopupData>();
@@ -22,8 +25,16 @@ public class PopupController : MonoBehaviour
     [Header("ポップアップの設定")]
     public PopupSettings popupSettings = new PopupSettings();
 
+    [Header("入力フォームの設定")]
+    public InputFormSettings inputFormSettings = new InputFormSettings();
+
+    [Header("キーボードの設定")]
+    public KeyboardSettings keyboardSettings = new KeyboardSettings();
+
     private PopupUIRoot uiRoot;
     private PopupData currentData;
+    private TMP_InputField inputForm;
+    private KeyboardController keyboard;
 
     private void Awake()
     {
@@ -43,6 +54,9 @@ public class PopupController : MonoBehaviour
 
         ApplyButtonListSettings();
         CreateButtons();
+
+        if (inputFormPrefab != null && keyboardPrefab != null)
+            CreateInputFormAndKeyboard();
 
         ClosePopup();
     }
@@ -117,6 +131,45 @@ public class PopupController : MonoBehaviour
         backgroundButton.onClick.AddListener(ClosePopup);
     }
 
+    private void CreateInputFormAndKeyboard()
+    {
+        // フォームはbackgroundのすぐ後ろに置き、ポップアップを開いたときに隠れるようにする
+        Transform background = uiRoot.background.transform;
+        inputForm = Instantiate(inputFormPrefab, background.parent);
+        inputForm.name = "InputForm";
+        inputForm.transform.SetSiblingIndex(background.GetSiblingIndex());
+
+        RectTransform rect = inputForm.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = inputFormSettings.position;
+        rect.sizeDelta = inputFormSettings.size;
+
+        inputForm.pointSize = inputFormSettings.fontSize;
+        inputForm.characterLimit = inputFormSettings.maxLength;
+        inputForm.text = "";
+
+        if (inputForm.placeholder is TMP_Text placeholder)
+            placeholder.text = inputFormSettings.placeholder;
+
+        // キーボードは一番手前に表示する
+        keyboard = Instantiate(keyboardPrefab, uiRoot.transform);
+        keyboard.name = "Keyboard";
+        keyboard.transform.SetAsLastSibling();
+        StretchToParent(keyboard.GetComponent<RectTransform>());
+        keyboard.Setup(keyboardSettings);
+        keyboard.Bind(inputForm);
+    }
+
+    private static void StretchToParent(RectTransform rect)
+    {
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+    }
+
     private static T GetOrAddComponent<T>(GameObject target) where T : Component
     {
         T component = target.GetComponent<T>();
@@ -188,4 +241,16 @@ public class ButtonLabelStyle
 public class PopupSettings
 {
     public bool closeOnBackgroundClick = true;
+}
+
+[Serializable]
+public class InputFormSettings
+{
+    [Tooltip("画面中央からの位置")]
+    public Vector2 position = new Vector2(0f, 300f);
+    public Vector2 size = new Vector2(600f, 80f);
+    public float fontSize = 36f;
+    public string placeholder = "ここをタップして入力";
+    [Tooltip("0なら無制限")]
+    public int maxLength = 12;
 }
