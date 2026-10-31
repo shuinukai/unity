@@ -4,9 +4,14 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-// キーボードプレハブのルートに付ける。ひらがな入力専用のアプリ内キーボード
+// Hierarchyに置いたキーボードのルートに付ける。ひらがな入力専用のアプリ内キーボード
+// キーの大きさ・間隔はKeyGridのGrid Layout Group、キーの文字サイズはKanaKeyプレハブで設定する
 public class KeyboardController : MonoBehaviour
 {
+    [Header("入力先")]
+    [Tooltip("タップするとこのキーボードが開くフォーム")]
+    public TMP_InputField initialTarget;
+
     [Header("UI要素")]
     public Button scrimButton;
     public GameObject keyboardPanel;
@@ -22,11 +27,9 @@ public class KeyboardController : MonoBehaviour
     // 決定ボタンが押されたときに入力内容を通知する（今は未使用）
     public event Action<string> Submitted;
 
-    private const int KeyColumnCount = 12;
     private const string DakutenKey = "゛";
     private const string HandakutenKey = "゜";
     private const string SmallKey = "小";
-    private const string LongVowelKey = "ー";
 
     // 右から「あかさたな…」と並ぶ五十音表（12列×5行）。空文字は穴埋め用
     private static readonly string[] hiraganaKeys =
@@ -57,24 +60,13 @@ public class KeyboardController : MonoBehaviour
         {'や','ゃ'},{'ゆ','ゅ'},{'よ','ょ'},{'つ','っ'},{'わ','ゎ'}
     };
 
-    private KeyboardSettings settings;
     private TMP_InputField target;
     private Button proxyButton;
 
     // ---------- 初期化 ----------
 
-    public void Setup(KeyboardSettings settings)
+    private void Awake()
     {
-        this.settings = settings;
-
-        // Scrimは常に全画面を覆う
-        RectTransform scrimRect = scrimButton.GetComponent<RectTransform>();
-        scrimRect.anchorMin = Vector2.zero;
-        scrimRect.anchorMax = Vector2.one;
-        scrimRect.offsetMin = Vector2.zero;
-        scrimRect.offsetMax = Vector2.zero;
-
-        ApplyGridSettings();
         CreateKeys();
 
         backspaceButton.onClick.AddListener(OnBackspacePressed);
@@ -83,6 +75,14 @@ public class KeyboardController : MonoBehaviour
         scrimButton.onClick.AddListener(Hide);
 
         Hide();
+    }
+
+    private void Start()
+    {
+        if (initialTarget != null)
+            Bind(initialTarget);
+        else
+            Debug.LogWarning("KeyboardControllerの入力先（Initial Target）が設定されていません。");
     }
 
     // 入力先のフォームを設定する。別のフォームで呼び直すと入力先が切り替わる
@@ -101,14 +101,6 @@ public class KeyboardController : MonoBehaviour
         proxyButton.onClick.AddListener(Show);
 
         UpdateDisplayText(target.text);
-    }
-
-    private void ApplyGridSettings()
-    {
-        keyGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-        keyGrid.constraintCount = KeyColumnCount;
-        keyGrid.cellSize = settings.keySize;
-        keyGrid.spacing = settings.keySpacing;
     }
 
     private void CreateKeys()
@@ -139,13 +131,7 @@ public class KeyboardController : MonoBehaviour
             key.name = "Key_" + kana;
 
             if (keyText != null)
-            {
                 keyText.text = kana;
-                keyText.fontSize = settings.keyFontSize;
-            }
-
-            if (keyImage != null && IsFunctionKey(kana))
-                keyImage.color = settings.functionKeyColor;
 
             string capturedKana = kana;
             key.onClick.AddListener(() => OnKanaKeyPressed(capturedKana));
@@ -175,11 +161,6 @@ public class KeyboardController : MonoBehaviour
         Button button = proxy.GetComponent<Button>();
         button.transition = Selectable.Transition.None;
         return button;
-    }
-
-    private static bool IsFunctionKey(string kana)
-    {
-        return kana == DakutenKey || kana == HandakutenKey || kana == SmallKey || kana == LongVowelKey;
     }
 
     // ---------- 表示 ----------
@@ -297,13 +278,4 @@ public class KeyboardController : MonoBehaviour
 
         return c;
     }
-}
-
-[Serializable]
-public class KeyboardSettings
-{
-    public Vector2 keySize = new Vector2(90f, 90f);
-    public Vector2 keySpacing = new Vector2(6f, 6f);
-    public float keyFontSize = 40f;
-    public Color functionKeyColor = new Color(0.85f, 0.85f, 0.85f);
 }

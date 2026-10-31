@@ -10,7 +10,8 @@ public class PopupButton : MonoBehaviour
     private PopupController controller;
     private PopupData data;
 
-    public void Setup(PopupController controller, PopupData data, ButtonLabelStyle labelStyle)
+    // フォントや文字サイズはプレハブ側で設定する。ここではタイトルとクリック処理だけを設定する
+    public void Setup(PopupController controller, PopupData data)
     {
         this.controller = controller;
         this.data = data;
@@ -19,35 +20,11 @@ public class PopupButton : MonoBehaviour
             label = GetComponentInChildren<TMP_Text>();
 
         if (label != null)
-        {
             label.text = data.title;
-            ApplyLabelStyle(labelStyle);
-        }
 
         Button button = GetComponent<Button>();
         button.onClick.RemoveAllListeners();
         button.onClick.AddListener(Open);
-    }
-
-    private void ApplyLabelStyle(ButtonLabelStyle style)
-    {
-        if (style == null)
-            return;
-
-        if (style.font != null)
-            label.font = style.font;
-
-        label.enableAutoSizing = style.autoSize;
-
-        if (style.autoSize)
-        {
-            label.fontSizeMin = style.fontSizeMin;
-            label.fontSizeMax = style.fontSizeMax;
-        }
-        else
-        {
-            label.fontSize = style.fontSize;
-        }
     }
 
     public void Open()
