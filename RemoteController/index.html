@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>リモート操作</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #15171c;
+    --surface: #23262e;
+    --text: #f2f3f5;
+    --muted: #a4a9b4;
+    --start: #2f9e5b;
+    --reset: #4a4f5c;
+    --error: #ff8a80;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    min-height: 100dvh;
+    margin: 0;
+    padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  }
+
+  main {
+    width: 100%;
+    max-width: 420px;
+    display: grid;
+    gap: 14px;
+  }
+
+  h1 {
+    margin: 0 0 6px;
+    font-size: 1.4rem;
+    text-align: center;
+  }
+
+  .status {
+    padding: 18px;
+    border-radius: 14px;
+    background: var(--surface);
+    text-align: center;
+  }
+
+  .status span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .status strong {
+    display: block;
+    margin-top: 6px;
+    font-size: 1.5rem;
+  }
+
+  button {
+    min-height: 72px;
+    border: 0;
+    border-radius: 14px;
+    color: #fff;
+    font: inherit;
+    font-size: 1.25rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  button:disabled { opacity: 0.5; cursor: wait; }
+  #startButton { background: var(--start); }
+  #resetButton { background: var(--reset); }
+
+  #message {
+    min-height: 1.5em;
+    margin: 0;
+    color: var(--error);
+    font-size: 0.9rem;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>リモート操作</h1>
+
+  <div class="status">
+    <span>現在の状態</span>
+    <strong id="status">確認中…</strong>
+  </div>
+
+  <button id="startButton" type="button">開始</button>
+  <button id="resetButton" type="button">リセット</button>
+
+  <p id="message" role="status"></p>
+</main>
+
+<script>
+  // Realtime DatabaseのURLを設定する（例: https://xxxx-default-rtdb.asia-southeast1.firebasedatabase.app）
+  const DATABASE_URL = "https://unity-30a8d-default-rtdb.asia-southeast1.firebasedatabase.app/";
+  const ROOM_ID = "demo";
+  const POLL_INTERVAL_MS = 2000;
+
+  const statusText = document.getElementById("status");
+  const message = document.getElementById("message");
+  const buttons = document.querySelectorAll("button");
+
+  const startedUrl =
+    `${DATABASE_URL.trim().replace(/\/+$/, "")}/rooms/${encodeURIComponent(ROOM_ID)}/started.json`;
+
+  function showStarted(started) {
+    statusText.textContent = started ? "開始済み" : "待機中";
+  }
+
+  async function refreshStatus() {
+    try {
+      const response = await fetch(startedUrl, { cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      showStarted((await response.json()) === true);
+      message.textContent = "";
+    } catch (error) {
+      statusText.textContent = "接続できません";
+      message.textContent = `状態を取得できませんでした: ${error.message}`;
+    }
+  }
+
+  async function setStarted(started) {
+    buttons.forEach((button) => { button.disabled = true; });
+
+    try {
+      const response = await fetch(startedUrl, {
+        method: "PUT",
+        body: JSON.stringify(started),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      showStarted(started);
+      message.textContent = "";
+    } catch (error) {
+      message.textContent = `送信できませんでした: ${error.message}`;
+    } finally {
+      buttons.forEach((button) => { button.disabled = false; });
+    }
+  }
+
+  document.getElementById("startButton").addEventListener("click", () => setStarted(true));
+  document.getElementById("resetButton").addEventListener("click", () => setStarted(false));
+
+  if (!DATABASE_URL.trim()) {
+    statusText.textContent = "未設定";
+    message.textContent = "index.html の DATABASE_URL を設定してください。";
+    buttons.forEach((button) => { button.disabled = true; });
+  } else {
+    refreshStatus();
+    setInterval(refreshStatus, POLL_INTERVAL_MS);
+  }
+</script>
+</body>
+</html>
