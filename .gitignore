@@ -110,3 +110,6 @@ InitTestScene*.unity*
 .vscode/
 *.slnx
 *.csproj
+
+# Firebase CLI cache
+.firebase/

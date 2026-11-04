@@ -1,0 +1,10 @@
+{
+  "hosting": {
+    "public": "RemoteController",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}
